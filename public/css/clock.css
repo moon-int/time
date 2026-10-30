@@ -1,0 +1,115 @@
+.clock-frame {
+  position: relative;
+  width: min(78vmin, 560px);
+  height: min(78vmin, 560px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  filter: drop-shadow(0 0 18px var(--accent-soft));
+}
+
+/* Guarantees the "show seconds ring" toggle always wins, even if a
+   custom-CSS mod happens to declare display on .ring. */
+.ring.ring-off {
+  display: none !important;
+}
+
+.ring-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 3;
+}
+
+.ring-progress {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke 1s ease;
+}
+
+.clock-face {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 82%;
+  height: 82%;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(2px);
+}
+
+.time {
+  font-family: var(--font-time);
+  font-weight: 700;
+  font-size: clamp(2.6rem, 12vmin, 6.5rem);
+  letter-spacing: 0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 30px var(--accent-soft);
+}
+
+.colon {
+  color: var(--accent);
+  padding: 0 0.05em;
+  opacity: 1;
+  transition: opacity 0.1s ease;
+}
+
+.colon.dim {
+  opacity: 0.15;
+}
+
+.meridiem {
+  font-size: 0.35em;
+  margin-left: 0.3em;
+  color: var(--accent);
+  vertical-align: middle;
+  letter-spacing: 0.1em;
+}
+
+.seconds {
+  margin-top: 0.6rem;
+  font-family: var(--font-time);
+  font-size: clamp(0.95rem, 2.6vmin, 1.4rem);
+  letter-spacing: 0.35em;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.date {
+  margin-top: 1.1rem;
+  font-size: clamp(0.8rem, 1.8vmin, 1rem);
+  color: var(--text-dim);
+  text-transform: capitalize;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 420px) {
+  .clock-frame {
+    width: 88vmin;
+    height: 88vmin;
+  }
+}
+
+.dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  box-shadow: 0 0 16px var(--accent-soft);
+  cursor: pointer;
+  padding: 0;
+}

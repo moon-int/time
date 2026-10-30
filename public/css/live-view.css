@@ -1,0 +1,713 @@
+.scroll-cue {
+  position: absolute;
+  bottom: calc(max(env(safe-area-inset-bottom), 1.6rem) + 2.3rem);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--text-dim);
+  opacity: 0.85;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.scroll-cue.is-hidden {
+  opacity: 0;
+}
+
+/* An SVG chevron rather than a "⌄" glyph: the glyph sits at the very bottom
+   of its line box in most fonts, so its bounce ran into the label below. */
+.scroll-cue-arrow {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: scroll-cue-bounce 1.8s ease-in-out infinite;
+}
+
+.scroll-cue-text {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+@keyframes scroll-cue-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+.scroll-spacer {
+  height: 100dvh;
+  pointer-events: none;
+  scroll-snap-align: start;
+}
+
+/* Two stops only: top of the clock, top of the live view. "proximity" (not
+   "mandatory") snaps decisively once a scroll ends near either boundary,
+   without hijacking free scrolling through a long cue list further down. */
+html {
+  scroll-snap-type: y proximity;
+}
+
+/* ---------- Live view ---------- */
+
+.live-view {
+  --warn: #ffb066;
+  --danger: #ff6b6b;
+  --ok: #7dffb3;
+  --line: rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 5;
+  min-height: 100dvh;
+  scroll-snap-align: start;
+  /* The header's full-bleed backdrop and fade reach 100vmax past the column;
+     clip them here so they don't widen the page into a horizontal scroll.
+     "clip" (unlike "hidden") creates no scroll container, so the sticky
+     header still sticks to the viewport. */
+  overflow-x: clip;
+}
+
+.live-view-sheet {
+  min-height: 100dvh;
+  /* Solid at the top so the sticky header (also --bg-2) blends in seamlessly. */
+  background: linear-gradient(180deg, var(--bg-2) 12rem, var(--bg-3) 85%);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.35);
+  padding: 0.9rem max(1.2rem, env(safe-area-inset-left)) calc(3rem + env(safe-area-inset-bottom));
+}
+
+.live-view-inner {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.live-view-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 auto 0.6rem;
+}
+
+/* ----- Header ----- */
+
+.live-view-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem 1rem;
+  margin-bottom: 1.2rem;
+  /* Clears the fixed toolbar (accent dot + gear, top right) and city label,
+     which overlap the sheet once it is scrolled to the top. */
+  padding: calc(max(env(safe-area-inset-top), 1.4rem) + 2.4rem) 0 0.8rem;
+  /* Full-bleed backdrop beyond the centered column, so the sticky header
+     doesn't read as a separate box on wide screens. */
+  background: var(--bg-2);
+  box-shadow: 0 0 0 100vmax var(--bg-2);
+  clip-path: inset(0 -100vmax -1.2rem);
+}
+
+/* Soft fade under the sticky header instead of a hard edge. */
+.live-view-header::after {
+  content: "";
+  position: absolute;
+  left: -100vmax;
+  right: -100vmax;
+  top: 100%;
+  /* Matches the header's margin-bottom, so at rest the fade ends exactly
+     where the content starts instead of veiling the first card's border. */
+  height: 1.2rem;
+  background: linear-gradient(180deg, var(--bg-2), transparent);
+  pointer-events: none;
+}
+
+/* Wide screens: the centered column no longer collides with the toolbar
+   pinned to the viewport's right edge, so the header can sit higher. */
+@media (min-width: 900px) {
+  .live-view-header {
+    padding-top: calc(max(env(safe-area-inset-top), 1.4rem) + 0.2rem);
+  }
+}
+
+.live-view-title {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.live-view-title h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.live-view-progress-text {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 0.1rem;
+}
+
+.live-view-pulse {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent-soft);
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+.live-view-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-shrink: 0;
+}
+
+.live-view-clock {
+  font-family: var(--font-time);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.live-add-toggle {
+  font-size: 1.25rem;
+  transition: background 0.2s ease, transform 0.25s ease, border-color 0.2s ease;
+}
+
+.live-add-toggle.is-open {
+  transform: rotate(45deg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.live-add-toggle.is-open:hover {
+  transform: rotate(45deg) scale(1.05);
+}
+
+/* One segment per cue of today: a glanceable "where are we in the show". */
+.live-day-strip {
+  flex-basis: 100%;
+  display: flex;
+  gap: 3px;
+}
+
+.live-day-strip:empty {
+  display: none;
+}
+
+.live-day-seg {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: background 0.4s ease;
+}
+
+.live-day-seg--done {
+  background: var(--accent-soft);
+}
+
+.live-day-seg--live {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-soft);
+}
+
+.live-cue-form {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1.4rem;
+}
+
+/* ----- Hero: now + next ----- */
+
+.live-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.7rem;
+  margin-bottom: 1.8rem;
+}
+
+@media (min-width: 640px) {
+  .live-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  }
+
+  /* After the last cue only "now" remains — let it span the full row. */
+  .live-hero:has(.live-hero-next[hidden]) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.live-hero-now,
+.live-hero-next {
+  border-radius: 16px;
+  padding: 1rem 1.1rem;
+  min-width: 0;
+}
+
+.live-hero-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.live-hero-now {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+}
+
+.live-hero-now.is-idle .live-badge {
+  display: none;
+}
+
+.live-hero-now-name {
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.live-hero-now.is-idle .live-hero-now-name {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--text-dim);
+}
+
+.live-hero-now-meta {
+  margin-top: auto;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.live-hero-next {
+  --state: var(--accent);
+  --state-soft: var(--accent-soft);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--state);
+  box-shadow: 0 0 24px var(--state-soft);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.live-hero-next.is-soon {
+  --state: var(--warn);
+  --state-soft: rgba(255, 176, 102, 0.3);
+}
+
+.live-hero-next.is-imminent {
+  --state: var(--danger);
+  --state-soft: rgba(255, 107, 107, 0.4);
+  animation: live-imminent 1s ease-in-out infinite;
+}
+
+@keyframes live-imminent {
+  0%, 100% { box-shadow: 0 0 14px var(--state-soft); }
+  50% { box-shadow: 0 0 36px var(--state-soft); }
+}
+
+.live-hero-next-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.live-hero-next-time {
+  font-family: var(--font-time);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.live-hero-next-name {
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0.35rem 0 0.2rem;
+  overflow-wrap: anywhere;
+}
+
+.live-hero-countdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.live-hero-countdown {
+  font-family: var(--font-time);
+  font-size: clamp(2.4rem, 11vw, 3.6rem);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--state);
+  text-shadow: 0 0 24px var(--state-soft);
+  transition: color 0.4s ease;
+}
+
+.live-go {
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--bg-3);
+  background: var(--state);
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.1rem;
+  cursor: pointer;
+  transition: filter 0.2s ease, transform 0.15s ease, background 0.4s ease;
+}
+
+.live-go:hover {
+  filter: brightness(1.12);
+}
+
+.live-go:active {
+  transform: scale(0.97);
+}
+
+.live-go:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.live-hero-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.live-hero-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--state);
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 1s linear, background 0.4s ease;
+}
+
+.live-empty,
+.live-all-done {
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  text-align: center;
+  line-height: 1.5;
+  padding: 1.6rem 1rem;
+  margin: 0 0 1.4rem;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+}
+
+/* ----- Timeline list ----- */
+/* Each row draws its own segment of the vertical line in the marker column;
+   rows have no gap between them, so the segments join into one line. */
+
+.live-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.live-item {
+  display: grid;
+  grid-template-columns: 64px 22px minmax(0, 1fr);
+  column-gap: 0.7rem;
+}
+
+.live-item-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding-top: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.live-item-clock {
+  font-family: var(--font-time);
+  font-size: 0.88rem;
+}
+
+.live-item-rel {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  margin-top: 0.15rem;
+  white-space: nowrap;
+}
+
+.live-item-marker {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.live-item-marker::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  background: var(--line);
+}
+
+.live-item:first-child .live-item-marker::before {
+  top: 1.15rem;
+}
+
+.live-item:last-child .live-item-marker::before {
+  bottom: auto;
+  height: 1.15rem;
+}
+
+.live-item:only-child .live-item-marker::before {
+  display: none;
+}
+
+/* The line behind past cues is "filled", up to the live one. */
+.live-item--done .live-item-marker::before {
+  background: var(--accent-soft);
+}
+
+.live-item-dot {
+  position: relative;
+  margin-top: 0.85rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--bg-2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.live-item--done .live-item-dot {
+  background: var(--accent-soft);
+  border-color: transparent;
+}
+
+.live-item--live .live-item-dot {
+  width: 16px;
+  height: 16px;
+  margin-top: 0.75rem;
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 12px var(--accent-soft);
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+.live-item-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 0.7rem;
+  margin: 0.25rem 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.live-item:hover .live-item-card {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.live-item--live .live-item-card,
+.live-item--live:hover .live-item-card {
+  background: linear-gradient(90deg, var(--accent-soft), rgba(255, 255, 255, 0.03) 70%);
+  border-color: var(--accent-soft);
+}
+
+.live-item--done .live-item-time,
+.live-item--done .live-item-body {
+  opacity: 0.5;
+}
+
+.live-item--live .live-item-clock {
+  color: var(--accent);
+}
+
+.live-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.live-item-label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+/* Inline (not a flex sibling) so a wrapping name flows back under the badge
+   instead of being squeezed into a narrow column beside it. */
+.live-item-label .live-badge {
+  display: inline-block;
+  margin-right: 0.4rem;
+  vertical-align: 0.12em;
+  line-height: 1.3;
+}
+
+.live-item--live .live-item-name {
+  font-weight: 600;
+}
+
+.live-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.4rem;
+  margin-top: 0.15rem;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  min-width: 0;
+}
+
+.live-item-meta > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.live-item-meta .cue-badge {
+  flex-shrink: 0;
+  margin-left: 0;
+}
+
+.live-item-error {
+  /* Own row under body + buttons, so long errors use the full card width. */
+  grid-column: 1 / -1;
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--danger);
+  overflow-wrap: anywhere;
+}
+
+.live-item-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.live-badge {
+  flex-shrink: 0;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--bg-3);
+  background: var(--accent);
+  border-radius: 4px;
+  padding: 0.12rem 0.38rem;
+}
+
+.live-result {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: help;
+}
+
+.live-result--ok {
+  color: var(--ok);
+  background: rgba(125, 255, 179, 0.12);
+}
+
+.live-result--err {
+  color: var(--danger);
+  background: rgba(255, 107, 107, 0.15);
+}
+
+.live-send {
+  font-family: inherit;
+  font-size: 0.72rem;
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--text-dim);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.live-send:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg-3);
+}
+
+.live-send:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (max-width: 420px) {
+  .live-item {
+    grid-template-columns: 56px 18px minmax(0, 1fr);
+    column-gap: 0.45rem;
+  }
+
+  .live-item-card {
+    padding: 0.55rem;
+    column-gap: 0.5rem;
+  }
+
+  /* Stack send button over result icon to give the name more width. */
+  .live-item-status {
+    flex-direction: column-reverse;
+    gap: 0.35rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-view-pulse,
+  .live-item--live .live-item-dot,
+  .live-hero-next.is-imminent {
+    animation: none;
+  }
+
+  .live-hero-bar-fill {
+    transition: none;
+  }
+}

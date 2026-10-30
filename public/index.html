@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>mo-tion time</title>
+  <meta name="theme-color" content="#0a0e14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="description" content="Vollbild-Uhr mit Live-Ablaufplan und HTTP-Cues für Events." />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Space+Grotesk:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/clock.css" />
+  <link rel="stylesheet" href="css/panel.css" />
+  <link rel="stylesheet" href="css/schedule.css" />
+  <link rel="stylesheet" href="css/live-view.css" />
+</head>
+<body>
+  <main id="stage" class="stage">
+    <div class="vignette"></div>
+
+    <div class="clock-frame" id="clockFrame">
+      <svg class="ring" id="ringSvg" viewBox="0 0 300 300" aria-hidden="true">
+        <circle class="ring-track" cx="150" cy="150" r="140" />
+        <circle class="ring-progress" id="ringProgress" cx="150" cy="150" r="140" />
+      </svg>
+
+      <div class="clock-face">
+        <div class="time" id="time">
+          <span id="hours">00</span><span class="colon" id="colon">:</span><span id="minutes">00</span><span class="meridiem" id="meridiem"></span>
+        </div>
+        <div class="seconds" id="seconds">00</div>
+        <div class="date" id="date">Montag, 1. Januar</div>
+      </div>
+    </div>
+
+    <div class="hint" id="hint" data-i18n="hintFullscreen">Tippen für Vollbild</div>
+
+    <div class="scroll-cue" id="scrollCue" aria-hidden="true">
+      <svg class="scroll-cue-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+      <span class="scroll-cue-text" data-i18n="scrollForLive">Für Live-Ablauf runterscrollen</span>
+    </div>
+  </main>
+
+  <div class="ui-layer">
+    <div class="toolbar">
+      <button class="dot" id="colorDot" data-i18n-title="accentCycle" aria-label="Akzentfarbe wechseln" title="Akzentfarbe wechseln"></button>
+      <button class="icon-btn" id="gearBtn" data-i18n-title="settings" aria-label="Einstellungen" title="Einstellungen">⚙</button>
+    </div>
+    <div class="city" id="cityLabel"></div>
+
+    <div class="panel-overlay" id="panelOverlay"></div>
+    <aside class="panel" id="settingsPanel" aria-label="Einstellungen">
+      <div class="panel-header">
+        <div class="tabs">
+          <button class="tab active" data-tab="design" data-i18n="tabDesign" type="button">Design</button>
+          <button class="tab" data-tab="schedule" data-i18n="tabSchedule" type="button">Zeitplan</button>
+        </div>
+        <button class="icon-btn" id="closePanel" data-i18n-title="close" aria-label="Schließen">✕</button>
+      </div>
+
+      <section class="tab-panel" data-tab-panel="design">
+        <div class="field-group">
+          <label class="field">
+            <span data-i18n="languageLabel">Sprache</span>
+            <select id="languageSelect">
+              <option value="de">Deutsch</option>
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+              <option value="es">Español</option>
+            </select>
+          </label>
+          <label class="field">
+            <span data-i18n="timezoneLabel">Zeitzone</span>
+            <select id="timezoneSelect">
+              <option value="local" data-i18n="tzLocal">Lokal (automatisch erkannt)</option>
+              <option value="UTC">UTC</option>
+              <option value="Europe/London">London</option>
+              <option value="Europe/Berlin">Berlin / Paris / Rom</option>
+              <option value="Europe/Athens">Athen / Helsinki</option>
+              <option value="Europe/Moscow">Moskau</option>
+              <option value="Asia/Dubai">Dubai</option>
+              <option value="Asia/Kolkata">Neu-Delhi</option>
+              <option value="Asia/Shanghai">Shanghai / Singapur</option>
+              <option value="Asia/Tokyo">Tokio</option>
+              <option value="Australia/Sydney">Sydney</option>
+              <option value="Pacific/Auckland">Auckland</option>
+              <option value="America/Sao_Paulo">São Paulo</option>
+              <option value="America/New_York">New York</option>
+              <option value="America/Chicago">Chicago</option>
+              <option value="America/Denver">Denver</option>
+              <option value="America/Los_Angeles">Los Angeles</option>
+              <option value="Pacific/Honolulu">Honolulu</option>
+            </select>
+          </label>
+          <label class="field">
+            <span data-i18n="accentLabel">Akzentfarbe</span>
+            <input type="color" id="accentPicker" value="#5ee7ff" />
+          </label>
+          <label class="field">
+            <span data-i18n="timeFormatLabel">Zeitformat</span>
+            <select id="formatSelect">
+              <option value="24" data-i18n="format24">24-Stunden</option>
+              <option value="12" data-i18n="format12">12-Stunden (AM/PM)</option>
+            </select>
+          </label>
+          <label class="field">
+            <span data-i18n="fontLabel">Schriftart</span>
+            <select id="fontSelect">
+              <option value="orbitron" data-i18n="fontOrbitron">Orbitron (digital)</option>
+              <option value="grotesk" data-i18n="fontGrotesk">Space Grotesk</option>
+              <option value="mono" data-i18n="fontMono">Monospace</option>
+              <option value="system" data-i18n="fontSystem">Systemschrift</option>
+            </select>
+          </label>
+          <label class="field">
+            <span data-i18n="bgLabel">Hintergrund</span>
+            <select id="bgModeSelect">
+              <option value="auto" data-i18n="bgAuto">Automatisch (Tageszeit)</option>
+              <option value="solid" data-i18n="bgSolid">Statische Farbe</option>
+            </select>
+          </label>
+          <label class="field" id="bgSolidField" hidden>
+            <span data-i18n="bgColorLabel">Hintergrundfarbe</span>
+            <input type="color" id="bgSolidPicker" value="#0a0e14" />
+          </label>
+          <label class="checkbox-field">
+            <input type="checkbox" id="toggleSeconds" checked />
+            <span data-i18n="showSecondsLabel">Sekunden anzeigen</span>
+          </label>
+          <label class="checkbox-field">
+            <input type="checkbox" id="toggleDate" checked />
+            <span data-i18n="showDateLabel">Datum anzeigen</span>
+          </label>
+          <label class="checkbox-field">
+            <input type="checkbox" id="toggleRing" checked />
+            <span data-i18n="showRingLabel">Sekundenring anzeigen</span>
+          </label>
+        </div>
+
+        <div class="section">
+          <h4 data-i18n="modsHeading">Mods &amp; Custom CSS</h4>
+          <p class="hint-text" data-i18n="modsHint">Eigenes CSS wird live angewendet und mit der Konfiguration gespeichert.</p>
+          <label class="field">
+            <span data-i18n="templateLabel">Vorlage einfügen</span>
+            <select id="cssTemplateSelect">
+              <option value="" data-i18n="templatePlaceholder">— Vorlage wählen —</option>
+              <option value="bigger" data-i18n="cssTplBigger">Größere Ziffern</option>
+              <option value="glow" data-i18n="cssTplGlow">Intensiverer Glow</option>
+              <option value="sharp" data-i18n="cssTplSharp">Eckige Karte</option>
+              <option value="pulse" data-i18n="cssTplPulse">Pulsierender Rahmen</option>
+            </select>
+          </label>
+          <textarea id="customCssInput" class="code-input" rows="5" data-i18n-placeholder="modsPlaceholder" placeholder="/* z.B. .time { letter-spacing: .2em; } */"></textarea>
+        </div>
+
+        <div class="section">
+          <h4 data-i18n="modScriptHeading">Mod-Script (JS)</h4>
+          <p class="hint-text warn" data-i18n="modScriptWarn">Führt beliebigen Code im Seitenkontext aus. Nur eigenen/vertrauenswürdigen Code verwenden — läuft ausschließlich auf Klick, niemals automatisch.</p>
+          <label class="field">
+            <span data-i18n="templateLabel">Vorlage einfügen</span>
+            <select id="jsTemplateSelect">
+              <option value="" data-i18n="templatePlaceholder">— Vorlage wählen —</option>
+              <option value="console" data-i18n="jsTplConsole">Konsolen-Test</option>
+              <option value="rainbow" data-i18n="jsTplRainbow">Regenbogen-Akzentfarbe</option>
+              <option value="tabTitle" data-i18n="jsTplTabTitle">Uhrzeit im Tab-Titel</option>
+              <option value="notify" data-i18n="jsTplNotify">Test-Benachrichtigung</option>
+            </select>
+          </label>
+          <textarea id="customJsInput" class="code-input" rows="5" data-i18n-placeholder="modScriptPlaceholder" placeholder="// eigener Code"></textarea>
+          <button class="btn" id="runModJs" data-i18n="run" type="button">Ausführen</button>
+        </div>
+
+        <div class="section">
+          <h4 data-i18n="relayHeading">Lokaler Relay</h4>
+          <p class="hint-text" data-i18n="relayHint">Optional: Cue-Sends über eine lokal laufende Relay-Instanz schicken (local-relay.js), damit sie garantiert vom eigenen Netzwerk aus gesendet werden — auch wenn diese Seite selbst woanders gehostet ist. Leer lassen für direkten Versand aus dem Browser.</p>
+          <label class="field">
+            <span data-i18n="relayUrlLabel">Relay-URL</span>
+            <input type="url" id="relayUrlInput" data-i18n-placeholder="relayUrlPlaceholder" placeholder="http://192.168.1.50:4100" />
+          </label>
+          <label class="field">
+            <span data-i18n="relayTokenLabel">Relay-Token</span>
+            <input type="text" id="relayTokenInput" class="code-input" data-i18n-placeholder="relayTokenPlaceholder" placeholder="beim Start im Terminal ausgegeben" />
+          </label>
+        </div>
+
+        <div class="section">
+          <h4 data-i18n="configHeading">Konfiguration</h4>
+          <p class="hint-text" data-i18n="configHint">Wird automatisch lokal zwischengespeichert (Cache). Zusätzlich exportier- und importierbar.</p>
+          <p class="hint-text instance-origin" id="instanceOrigin"></p>
+          <div class="button-row">
+            <button class="btn" id="exportBtn" data-i18n="export" type="button">Exportieren</button>
+            <button class="btn" id="importBtn" data-i18n="import" type="button">Importieren</button>
+            <button class="btn btn-danger" id="resetBtn" data-i18n="reset" type="button">Zurücksetzen</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-panel" data-tab-panel="schedule" hidden>
+        <p class="hint-text" data-i18n="scheduleIntro">Ablaufplan für Live-Events: Cues werden zur geplanten Zeit als „fällig" markiert.</p>
+
+        <div class="section auto-send-box">
+          <h4 data-i18n="autoSendHeading">Automatischer Versand</h4>
+          <p class="hint-text warn" data-i18n="autoSendWarn">Aktiviert das automatische Senden für Cues, bei denen „Automatisch" markiert ist, sobald ihre Zeit erreicht ist — ohne weiteren Klick. Standardmäßig deaktiviert.</p>
+          <label class="checkbox-field">
+            <input type="checkbox" id="autoSendGlobal" />
+            <span data-i18n="autoSendToggleLabel">Automatischen Versand global aktivieren</span>
+          </label>
+        </div>
+
+        <form class="cue-form" id="cueForm">
+          <div class="cue-form-row">
+            <label class="field">
+              <span data-i18n="cueTimeLabel">Zeit</span>
+              <input type="time" id="cueTime" required />
+            </label>
+            <label class="field field-grow">
+              <span data-i18n="cueLabelLabel">Bezeichnung</span>
+              <input type="text" id="cueLabel" data-i18n-placeholder="cueLabelPlaceholder" placeholder="z.B. Doors open" />
+            </label>
+          </div>
+          <div class="cue-form-row">
+            <label class="field">
+              <span data-i18n="cueMethodLabel">Methode</span>
+              <select id="cueMethod">
+                <option>GET</option>
+                <option selected>POST</option>
+                <option>PUT</option>
+                <option>PATCH</option>
+                <option>DELETE</option>
+              </select>
+            </label>
+            <label class="field field-grow">
+              <span data-i18n="cueUrlLabel">URL</span>
+              <input type="url" id="cueUrl" placeholder="https://..." required />
+            </label>
+          </div>
+          <div class="cue-form-row">
+            <label class="field">
+              <span data-i18n="cueRepeatLabel">Wiederholung</span>
+              <select id="cueRepeat">
+                <option value="daily" selected data-i18n="repeatDaily">Täglich</option>
+                <option value="weekly" data-i18n="repeatWeekly">Wöchentlich</option>
+                <option value="once" data-i18n="repeatOnce">Einmalig</option>
+              </select>
+            </label>
+            <label class="field field-grow" id="cueDateField" hidden>
+              <span data-i18n="cueDateLabel">Datum</span>
+              <input type="date" id="cueDate" />
+            </label>
+          </div>
+          <div class="weekday-picker" id="cueWeekdaysField" hidden>
+            <label class="weekday-chip"><input type="checkbox" value="1" /><span data-i18n="wd1">Mo</span></label>
+            <label class="weekday-chip"><input type="checkbox" value="2" /><span data-i18n="wd2">Di</span></label>
+            <label class="weekday-chip"><input type="checkbox" value="3" /><span data-i18n="wd3">Mi</span></label>
+            <label class="weekday-chip"><input type="checkbox" value="4" /><span data-i18n="wd4">Do</span></label>
+            <label class="weekday-chip"><input type="checkbox" value="5" /><span data-i18n="wd5">Fr</span></label>
+            <label class="weekday-chip"><input type="checkbox" value="6" /><span data-i18n="wd6">Sa</span></label>
+            <label class="weekday-chip"><input type="checkbox" value="0" /><span data-i18n="wd0">So</span></label>
+          </div>
+          <label class="field">
+            <span data-i18n="cueHeadersLabel">Headers (eine Zeile je „Key: Value")</span>
+            <textarea id="cueHeaders" class="code-input" rows="2" data-i18n-placeholder="cueHeadersPlaceholder" placeholder="Content-Type: application/json"></textarea>
+          </label>
+          <label class="field">
+            <span data-i18n="cueBodyLabel">Body (optional)</span>
+            <textarea id="cueBody" class="code-input" rows="3" placeholder='{"cue":"go"}'></textarea>
+          </label>
+          <label class="checkbox-field">
+            <input type="checkbox" id="cueAuto" />
+            <span data-i18n="cueAutoLabel">Automatisch senden, sobald fällig</span>
+          </label>
+          <button class="btn btn-accent" type="submit" data-i18n="addCue">Cue hinzufügen</button>
+        </form>
+
+        <h4 data-i18n="scheduleHeading">Ablaufplan</h4>
+        <ul class="timeline" id="scheduleList"></ul>
+
+        <h4 data-i18n="activityHeading">Aktivität</h4>
+        <ul class="log-list" id="logList"></ul>
+      </section>
+      <p class="hint-text panel-source"><a href="https://mo-tion.at" target="_blank" rel="noreferrer">mo-tion.at</a> · <a href="https://github.com/moon-int/time" target="_blank" rel="noreferrer">open source on github</a></p>
+    </aside>
+  </div>
+
+  <div class="scroll-spacer" aria-hidden="true"></div>
+
+  <section class="live-view" id="liveView" aria-label="Live-Ablauf">
+    <div class="live-view-sheet">
+      <div class="live-view-inner">
+        <div class="live-view-handle"></div>
+        <header class="live-view-header">
+          <div class="live-view-title">
+            <span class="live-view-pulse"></span>
+            <div>
+              <h2 data-i18n="liveHeading">Live-Ablauf</h2>
+              <div class="live-view-progress-text" id="liveProgressText"></div>
+            </div>
+          </div>
+          <div class="live-view-header-right">
+            <div class="live-view-clock" id="liveViewClock">00:00:00</div>
+            <button class="icon-btn live-add-toggle" id="liveAddToggle" data-i18n-title="addCue" aria-label="Cue hinzufügen" title="Cue hinzufügen" aria-expanded="false" type="button">+</button>
+          </div>
+          <div class="live-day-strip" id="liveDayStrip" aria-hidden="true"></div>
+        </header>
+
+        <form class="cue-form live-cue-form" id="liveCueForm" hidden>
+          <div class="cue-form-row">
+            <label class="field">
+              <span data-i18n="cueTimeLabel">Zeit</span>
+              <input type="time" id="liveCueTime" required />
+            </label>
+            <label class="field field-grow">
+              <span data-i18n="cueLabelLabel">Bezeichnung</span>
+              <input type="text" id="liveCueLabel" data-i18n-placeholder="cueLabelPlaceholder" placeholder="z.B. Doors open" />
+            </label>
+          </div>
+          <div class="cue-form-row">
+            <label class="field">
+              <span data-i18n="cueMethodLabel">Methode</span>
+              <select id="liveCueMethod">
+                <option>GET</option>
+                <option selected>POST</option>
+                <option>PUT</option>
+                <option>PATCH</option>
+                <option>DELETE</option>
+              </select>
+            </label>
+            <label class="field field-grow">
+              <span data-i18n="cueUrlLabel">URL</span>
+              <input type="url" id="liveCueUrl" placeholder="https://..." required />
+            </label>
+          </div>
+          <div class="cue-form-row">
+            <label class="field">
+              <span data-i18n="cueRepeatLabel">Wiederholung</span>
+              <select id="liveCueRepeat">
+                <option value="daily" selected data-i18n="repeatDaily">Täglich</option>
+                <option value="weekly" data-i18n="repeatWeekly">Wöchentlich</option>
+                <option value="once" data-i18n="repeatOnce">Einmalig</option>
+              </select>
+            </label>
+            <label class="field field-grow" id="liveCueDateField" hidden>
+              <span data-i18n="cueDateLabel">Datum</span>
+              <input type="date" id="liveCueDate" />
+            </label>
+          </div>
+          <div class="weekday-picker" id="liveCueWeekdaysField" hidden>
+            <label class="weekday-chip"><input type="checkbox" value="1" /><span data-i18n="wd1">Mo</span></label>
+            <label class="weekday-chip"><input type="checkbox" value="2" /><span data-i18n="wd2">Di</span></label>
+            <label class="weekday-chip"><input type="checkbox" value="3" /><span data-i18n="wd3">Mi</span></label>
+            <label class="weekday-chip"><input type="checkbox" value="4" /><span data-i18n="wd4">Do</span></label>
+            <label class="weekday-chip"><input type="checkbox" value="5" /><span data-i18n="wd5">Fr</span></label>
+            <label class="weekday-chip"><input type="checkbox" value="6" /><span data-i18n="wd6">Sa</span></label>
+            <label class="weekday-chip"><input type="checkbox" value="0" /><span data-i18n="wd0">So</span></label>
+          </div>
+          <details class="cue-advanced">
+            <summary data-i18n="cueAdvancedLabel">Erweitert (Headers/Body)</summary>
+            <label class="field">
+              <span data-i18n="cueHeadersLabel">Headers (eine Zeile je „Key: Value")</span>
+              <textarea id="liveCueHeaders" class="code-input" rows="2" data-i18n-placeholder="cueHeadersPlaceholder" placeholder="Content-Type: application/json"></textarea>
+            </label>
+            <label class="field">
+              <span data-i18n="cueBodyLabel">Body (optional)</span>
+              <textarea id="liveCueBody" class="code-input" rows="3" placeholder='{"cue":"go"}'></textarea>
+            </label>
+          </details>
+          <label class="checkbox-field">
+            <input type="checkbox" id="liveCueAuto" />
+            <span data-i18n="cueAutoLabel">Automatisch senden, sobald fällig</span>
+          </label>
+          <button class="btn btn-accent" type="submit" data-i18n="addCue">Cue hinzufügen</button>
+        </form>
+
+        <div class="live-hero" id="liveHero" hidden>
+          <div class="live-hero-now" id="liveNowCard">
+            <div class="live-hero-label"><span class="live-badge" data-i18n="liveBadge">LIVE</span><span data-i18n="liveNowLabel">Jetzt</span></div>
+            <div class="live-hero-now-name" id="liveNowName">—</div>
+            <div class="live-hero-now-meta" id="liveNowMeta"></div>
+          </div>
+          <div class="live-hero-next" id="liveNextCard">
+            <div class="live-hero-next-head">
+              <div class="live-hero-label" data-i18n="liveNextLabel">Als nächstes</div>
+              <div class="live-hero-next-time" id="liveNextTime">--:--</div>
+            </div>
+            <div class="live-hero-next-name" id="liveNextName">—</div>
+            <div class="live-hero-countdown-row">
+              <div class="live-hero-countdown" id="liveNextCountdown">00:00</div>
+              <button class="btn-send live-go" id="liveGoBtn" type="button" data-i18n="liveSendNow">Jetzt auslösen</button>
+            </div>
+            <div class="live-hero-bar" id="liveNextBarWrap"><span class="live-hero-bar-fill" id="liveNextBar"></span></div>
+          </div>
+        </div>
+
+        <p class="live-empty" id="liveEmpty" hidden data-i18n="liveEmptyText">Noch keine Cues geplant.</p>
+        <p class="live-all-done" id="liveAllDone" hidden data-i18n="liveAllDoneText">Alle heutigen Cues abgeschlossen.</p>
+
+        <ol class="live-list" id="liveList"></ol>
+      </div>
+    </div>
+  </section>
+
+  <input type="file" id="importInput" accept="application/json" hidden />
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

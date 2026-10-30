@@ -1,0 +1,205 @@
+.panel-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 20;
+}
+
+.panel-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(420px, 92vw);
+  height: 100dvh;
+  background: rgba(10, 14, 20, 0.92);
+  backdrop-filter: blur(14px);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  transform: translateX(105%);
+  transition: transform 0.35s ease;
+  z-index: 21;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel.open {
+  transform: translateX(0);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.1rem 0.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.tab {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-dim);
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab.active {
+  color: var(--bg-3);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.tab-panel {
+  padding: 1.1rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+.field-grow {
+  flex: 1;
+}
+
+.field input,
+.field select,
+.field textarea {
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg-2);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+}
+
+/* Native <select> popups render with the OS's own light/dark chrome, driven
+   by color-scheme (set on :root) rather than these colors — this pair keeps
+   the closed control itself readable and matches option colors when the
+   browser does honor them (Chromium/Firefox on most platforms). */
+.field select option {
+  background: var(--bg-2);
+  color: var(--text);
+}
+
+.field input[type="color"] {
+  padding: 0.2rem;
+  height: 2.2rem;
+  cursor: pointer;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.checkbox-field input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+.section {
+  margin-top: 1.4rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.section h4 {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+}
+
+.hint-text {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin: 0 0 0.6rem;
+  line-height: 1.4;
+}
+
+.hint-text.warn {
+  color: #ffb066;
+}
+
+.instance-origin {
+  font-family: "Courier New", monospace;
+  font-size: 0.72rem;
+}
+
+.code-input {
+  width: 100%;
+  font-family: "Courier New", monospace;
+  font-size: 0.78rem;
+  resize: vertical;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.btn {
+  font-family: inherit;
+  font-size: 0.82rem;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.btn-accent {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg-3);
+  font-weight: 600;
+  margin-top: 0.4rem;
+}
+
+.btn-danger {
+  border-color: rgba(255, 107, 107, 0.4);
+  color: #ff8080;
+}
+
+/* the way to mo-tion and to the source, at the foot of the settings */
+.panel-source { margin: 18px 0 8px; text-align: center; }
+.panel-source a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }

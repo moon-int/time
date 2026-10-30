@@ -1,0 +1,13 @@
+:root {
+  color-scheme: dark;
+
+  --accent: #5ee7ff;
+  --accent-soft: rgba(94, 231, 255, 0.25);
+  --bg-1: #0a0e14;
+  --bg-2: #131a26;
+  --bg-3: #05070a;
+  --text: #eaf6ff;
+  --text-dim: rgba(234, 246, 255, 0.5);
+  --transition-bg: 6s ease;
+  --font-time: "Orbitron", "Space Grotesk", monospace;
+}
