@@ -191,6 +191,23 @@
           </label>
         </div>
 
+        <div class="section" id="showsSection" hidden>
+          <h4 data-i18n="showsHeading">Shows der Band</h4>
+          <p class="hint-text" data-i18n="showsHint">Anzeige und Ablaufplan für die ganze Band speichern — mit tabs gespeichert, eine Kopie in Havoc.</p>
+          <div id="showsSignin" hidden>
+            <button class="btn btn-accent" id="showsSigninBtn" data-i18n="showsSignIn" type="button">Mit Havoc anmelden</button>
+          </div>
+          <div id="showsBody" hidden>
+            <p class="hint-text" id="showsWho" hidden></p>
+            <form class="shows-save" id="showsForm">
+              <input type="text" id="showsName" maxlength="120" data-i18n-placeholder="showsNamePlaceholder" placeholder="Name der Show" />
+              <button class="btn btn-accent" id="showsSaveBtn" data-i18n="showsSave" type="submit">Speichern</button>
+            </form>
+            <p class="hint-text shows-status" id="showsStatus" role="status" hidden></p>
+            <ul class="shows-list" id="showsList"></ul>
+          </div>
+        </div>
+
         <div class="section">
           <h4 data-i18n="configHeading">Konfiguration</h4>
           <p class="hint-text" data-i18n="configHint">Wird automatisch lokal zwischengespeichert (Cache). Zusätzlich exportier- und importierbar.</p>
@@ -205,6 +222,7 @@
 
       <section class="tab-panel" data-tab-panel="schedule" hidden>
         <p class="hint-text" data-i18n="scheduleIntro">Ablaufplan für Live-Events: Cues werden zur geplanten Zeit als „fällig" markiert.</p>
+        <div id="startBarPanel"></div>
 
         <div class="section auto-send-box">
           <h4 data-i18n="autoSendHeading">Automatischer Versand</h4>
@@ -239,7 +257,7 @@
             </label>
             <label class="field field-grow">
               <span data-i18n="cueUrlLabel">URL</span>
-              <input type="url" id="cueUrl" placeholder="https://..." required />
+              <input type="text" inputmode="url" id="cueUrl" placeholder="https://… · /tabs/api/control/go" required />
             </label>
           </div>
           <div class="cue-form-row">
@@ -310,6 +328,7 @@
           </div>
           <div class="live-day-strip" id="liveDayStrip" aria-hidden="true"></div>
         </header>
+        <div id="startBarLive"></div>
 
         <form class="cue-form live-cue-form" id="liveCueForm" hidden>
           <div class="cue-form-row">
@@ -335,7 +354,7 @@
             </label>
             <label class="field field-grow">
               <span data-i18n="cueUrlLabel">URL</span>
-              <input type="url" id="liveCueUrl" placeholder="https://..." required />
+              <input type="text" inputmode="url" id="liveCueUrl" placeholder="https://… · /tabs/api/control/go" required />
             </label>
           </div>
           <div class="cue-form-row">

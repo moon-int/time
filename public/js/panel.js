@@ -3,6 +3,9 @@ import { t, applyI18n } from "./i18n.js";
 import { applyClockDisplay, updateCityLabel } from "./clock.js";
 import { renderSchedule, renderLog } from "./schedule.js";
 import { CSS_TEMPLATES, JS_TEMPLATES } from "./templates.js";
+import { initShows } from "./shows.js";
+import { initShowStart } from "./showstart.js";
+import { renderLiveView } from "./liveView.js";
 
 const gearBtn = document.getElementById("gearBtn");
 const panelOverlay = document.getElementById("panelOverlay");
@@ -253,4 +256,7 @@ export function initPanel() {
   });
 
   syncPanelFields();
+  initShows({ onLoaded: refreshAll });
+  // a dynamic start: moving it moves every cue that hangs on it — the schedule and the live view follow
+  initShowStart({ onChange: () => { renderSchedule(); renderLiveView(); } });
 }

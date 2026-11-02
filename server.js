@@ -6,6 +6,7 @@ const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
 // under a path next to other apps (jam.geyser.at/time): BASE_PATH=/time, set by tabs' launcher — the path comes in unchanged
 const BASE_PATH = (process.env.BASE_PATH || "").replace(/\/+$/, "").replace(/^(?=[^/])/, "/");
+const JAM_API = (process.env.JAM_API || "").replace(/\/+$/, "");
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -33,6 +34,12 @@ const server = http.createServer((req, res) => {
       return;
     }
     requestedPath = requestedPath.slice(BASE_PATH.length) || "/";
+  }
+  // where the band's shows are saved: tabs next door (JAM_API=/tabs/api, set by tabs' launcher) — none without it
+  if (requestedPath === "/jam.json") {
+    res.writeHead(200, { "Content-Type": MIME_TYPES[".json"], "Cache-Control": "no-store" });
+    res.end(JSON.stringify({ api: JAM_API || null }));
+    return;
   }
   const safePath = path.normalize(requestedPath).replace(/^(\.\.[/\\])+/, "");
   let filePath = path.join(PUBLIC_DIR, safePath === "/" ? "index.html" : safePath);

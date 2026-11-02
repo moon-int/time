@@ -145,6 +145,13 @@
   color: var(--text-dim);
 }
 
+.timeline-offset {
+  display: block;
+  font-size: 0.68rem;
+  opacity: 0.75;
+  margin-top: 0.1rem;
+}
+
 .timeline-item.due .timeline-time {
   color: var(--accent);
 }
@@ -288,4 +295,21 @@
   .timeline-item {
     grid-template-columns: 40px 16px 1fr;
   }
+}
+
+/* mo-tion tabs as a cue target: pick an action, the request fills itself in (js/tabsCue.js) */
+.tabs-builder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.tb-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-dim);
 }

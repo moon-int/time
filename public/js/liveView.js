@@ -1,4 +1,5 @@
 import { state } from "./config.js";
+import { offsetLabel } from "./showstart.js";
 import { t, tf } from "./i18n.js";
 import { effectiveTimeZone, zonedParts } from "./time.js";
 import { pad, escapeHtml } from "./utils.js";
@@ -107,7 +108,7 @@ function renderList(items, statuses) {
       return `
       <li class="live-item live-item--${status}" data-id="${item.id}">
         <div class="live-item-time">
-          <span class="live-item-clock">${item.time}</span>
+          <span class="live-item-clock">${item.time}</span>${Number.isFinite(item.offset) ? `<span class="live-item-offset">${offsetLabel(item.offset)}</span>` : ""}
           ${status === "done" ? "" : `<span class="live-item-rel" data-time="${item.time}"></span>`}
         </div>
         <div class="live-item-marker"><span class="live-item-dot"></span></div>

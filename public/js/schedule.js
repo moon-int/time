@@ -1,7 +1,9 @@
 import { state, saveConfig } from "./config.js";
+import { offsetLabel } from "./showstart.js";
 import { t, LOCALE_MAP } from "./i18n.js";
 import { effectiveTimeZone, zonedParts, zonedDateKey, zonedWeekday } from "./time.js";
 import { pad, escapeHtml, uid } from "./utils.js";
+import { attachTabsBuilder } from "./tabsCue.js";
 
 const autoSendGlobal = document.getElementById("autoSendGlobal");
 const cueForm = document.getElementById("cueForm");
@@ -156,7 +158,7 @@ export function renderSchedule() {
       const due = item.time <= nowStr;
       return `
       <li class="timeline-item${due ? " due" : ""}" data-time="${item.time}" data-id="${item.id}">
-        <div class="timeline-time">${item.time}</div>
+        <div class="timeline-time">${item.time}${Number.isFinite(item.offset) ? `<span class="timeline-offset">${offsetLabel(item.offset)}</span>` : ""}</div>
         <div class="timeline-track"><span class="timeline-dot"></span></div>
         <div class="timeline-card">
           <div class="cue-info">
@@ -200,6 +202,7 @@ function resetCueForm(refs) {
 // fixed IDs so the same logic can drive both the settings-panel form and the
 // compact one in the live view.
 export function initCueForm(refs) {
+  attachTabsBuilder(refs);
   updateRepeatVisibility(refs);
   refs.repeat?.addEventListener("change", () => updateRepeatVisibility(refs));
 
